@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import CakeIcon from "@mui/icons-material/Cake";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -45,12 +46,24 @@ export default function Home() {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = null;
   };
+  useEffect(() => {
+    setIndex(Math.floor(Math.random() * images.length));
+  }, [images.length]);
+
+  const LIKE_MS = 800;
+
   const like = () => {
+    if (likeFX) return; // optional: ignore taps during FX
     setLikeFX(true);
+    setIndex((prev) => {
+      if (images.length < 2) return prev; // nothing to randomize
+      let next = prev;
+      while (next === prev) next = Math.floor(Math.random() * images.length);
+      return next;
+    });
     setTimeout(() => {
-      setIndex((i) => (images.length ? (i + 1) % images.length : 0));
       setLikeFX(false);
-    }, 1000); // duration should match the animation below
+    }, LIKE_MS);
   };
 
   const superLike = () => setModalOpen(true);
@@ -187,9 +200,11 @@ export default function Home() {
       {/* Name Header */}
       <Stack mt="50px">
         <Stack flexDirection={"row"} justifyContent="space-between" padding={1}>
-          <Typography color="#111" fontSize="2rem" fontWeight="600">
-            {"Kacey"}
-          </Typography>
+          <Stack display="flex" flexDirection={"row"} gap={1}>
+            <Typography color="#111" fontSize="2rem" fontWeight="600">
+              {"Kacey <3"}
+            </Typography>
+          </Stack>
           <Box display="flex" justifyContent={"cente"} alignItems={"center"}>
             <MoreHorizIcon />
           </Box>
@@ -294,13 +309,13 @@ export default function Home() {
             inset: 0,
             zIndex: 1300, // above page content
             bgcolor: "#fff",
-            animation: `${flash} 1000ms ease`,
+            animation: `${flash} ${LIKE_MS}ms ease`,
             display: "grid",
             placeItems: "center",
             pointerEvents: "none", // visual only; doesn’t block taps
             "@media (prefers-reduced-motion: reduce)": {
               animation: "none",
-              opacity: 0.9,
+              opacity: 0.95,
             },
           }}
         >
@@ -308,7 +323,7 @@ export default function Home() {
             sx={{
               fontSize: 96,
               color: "#e91e63",
-              animation: `${pop} 1000ms ease`,
+              animation: `${pop} ${LIKE_MS}ms ease`,
               "@media (prefers-reduced-motion: reduce)": { animation: "none" },
             }}
           />
