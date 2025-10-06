@@ -1,26 +1,24 @@
 "use client";
 
+import CakeIcon from "@mui/icons-material/Cake";
+import CloseIcon from "@mui/icons-material/Close";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import StraightenIcon from "@mui/icons-material/Straighten";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import {
   Box,
-  Button,
   Divider,
   Fade,
+  IconButton,
   Modal,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import CakeIcon from "@mui/icons-material/Cake";
-import StraightenIcon from "@mui/icons-material/Straighten";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
-import CloseIcon from "@mui/icons-material/Close";
-import { IconButton } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
 import { keyframes } from "@mui/system";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const age = Math.floor(
@@ -68,12 +66,47 @@ export default function Home() {
 
   const superLike = () => setModalOpen(true);
 
-  const handleClick = () => {
-    console.log(message);
-    setModalOpen(false);
-    setIndex(index + 1);
-    setMessage("");
+  const handleClick = async () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const rel = images.length ? `/${images[index % images.length]}` : "";
+    const currentUrl = rel ? `${origin}${rel}` : "";
+
+    const fd = new FormData();
+    fd.append("access_key", "e65bad31-7665-4454-baac-82fb0d012ec3");
+    fd.append("subject", "New Like from Kacey App");
+    fd.append("message", message || "");
+    if (currentUrl) fd.append("image_url", currentUrl); // shows as a field too
+
+    // Attach the image file (works for same-origin /public images)
+    // try {
+    //   if (currentUrl) {
+    //     const res = await fetch(currentUrl);
+    //     const blob = await res.blob(); // must be ≤ 5MB on free plan
+    //     const ext = (blob.type?.split("/")[1] || "jpg").replace("jpeg", "jpg");
+    //     const file = new File([blob], `photo.${ext}`, {
+    //       type: blob.type || "image/jpeg",
+    //     });
+    //     fd.append("attachment", file, file.name); // <-- Web3Forms file field
+    //   }
+    // } catch (e) {
+    //   console.warn("Could not attach image, sending link only:", e);
+    // }
+
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: fd,
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      setMessage("");
+      setModalOpen(false);
+      setIndex((i) => (images.length ? (i + 1) % images.length : 0));
+    } else {
+      console.error("Web3Forms error:", data);
+    }
   };
+
   const currentUrl = images.length ? images[index % images.length] : "";
 
   const flash = keyframes`
