@@ -18,13 +18,21 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { keyframes } from "@mui/system";
 
 export default function Home() {
   const age = Math.floor(
     (new Date() - new Date("2002-12-26")) / (1000 * 60 * 60 * 24 * 365)
   );
-  const images = ["image1.png", "image2.png", "image3.png", "image4.png"];
+  const [images, setImages] = useState([]);
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/gallery");
+      const data = await res.json();
+      setImages(data.images || []);
+    })();
+  }, []);
   const [index, setIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -37,7 +45,14 @@ export default function Home() {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = null;
   };
-  const like = () => setIndex(index + 1);
+  const like = () => {
+    setLikeFX(true);
+    setTimeout(() => {
+      setIndex((i) => (images.length ? (i + 1) % images.length : 0));
+      setLikeFX(false);
+    }, 1000); // duration should match the animation below
+  };
+
   const superLike = () => setModalOpen(true);
 
   const handleClick = () => {
@@ -46,6 +61,24 @@ export default function Home() {
     setIndex(index + 1);
     setMessage("");
   };
+  const currentUrl = images.length ? images[index % images.length] : "";
+
+  const flash = keyframes`
+  0% { opacity: 0; }
+  10% { opacity: 0.9; }
+  70% { opacity: 0.9; }
+  100% { opacity: 0; }
+`;
+
+  const pop = keyframes`
+  0% { transform: scale(0.4); opacity: 0; }
+  30% { transform: scale(1); opacity: 1; }
+  70% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+`;
+
+  const [likeFX, setLikeFX] = useState(false);
+
   return (
     <Box
       width="100vw"
@@ -91,7 +124,7 @@ export default function Home() {
                 height="300px"
                 borderRadius="16px"
                 sx={{
-                  backgroundImage: `url(/${images[index % images.length]})`,
+                  backgroundImage: currentUrl ? `url(${currentUrl})` : "none",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -167,7 +200,7 @@ export default function Home() {
           height="350px"
           borderRadius="16px"
           sx={{
-            backgroundImage: `url(/${images[index % images.length]})`,
+            backgroundImage: currentUrl ? `url(${currentUrl})` : "none",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -254,6 +287,33 @@ export default function Home() {
           </Stack>
         </Box>
       </Stack>
+      {likeFX && (
+        <Box
+          sx={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1300, // above page content
+            bgcolor: "#fff",
+            animation: `${flash} 1000ms ease`,
+            display: "grid",
+            placeItems: "center",
+            pointerEvents: "none", // visual only; doesn’t block taps
+            "@media (prefers-reduced-motion: reduce)": {
+              animation: "none",
+              opacity: 0.9,
+            },
+          }}
+        >
+          <FavoriteBorderIcon
+            sx={{
+              fontSize: 96,
+              color: "#e91e63",
+              animation: `${pop} 1000ms ease`,
+              "@media (prefers-reduced-motion: reduce)": { animation: "none" },
+            }}
+          />
+        </Box>
+      )}
     </Box>
   );
 }
