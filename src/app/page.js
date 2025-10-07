@@ -72,7 +72,7 @@ export default function Home() {
     const currentUrl = rel ? `${origin}${rel}` : "";
 
     const fd = new FormData();
-    fd.append("access_key", "e65bad31-7665-4454-baac-82fb0d012ec3");
+    fd.append("access_key", "c9c4362b-9084-4f01-b7df-0bb3ed0a0cca");
     fd.append("subject", "New Like from Kacey App");
     fd.append("message", message || "");
     if (currentUrl) fd.append("image_url", currentUrl); // shows as a field too
